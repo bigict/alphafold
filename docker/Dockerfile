@@ -21,6 +21,8 @@ ARG CUDA
 # Use bash to support string substitution.
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+RUN apt-key del 7fa2af80
+RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
         build-essential \
@@ -35,15 +37,15 @@ RUN apt-get update \
     && apt-get autoremove -y \
     && apt-get clean
 
-# Compile HHsuite from source.
-RUN git clone --branch v3.3.0 https://github.com/soedinglab/hh-suite.git /tmp/hh-suite \
-    && mkdir /tmp/hh-suite/build \
-    && pushd /tmp/hh-suite/build \
-    && cmake -DCMAKE_INSTALL_PREFIX=/opt/hhsuite .. \
-    && make -j 4 && make install \
-    && ln -s /opt/hhsuite/bin/* /usr/bin \
-    && popd \
-    && rm -rf /tmp/hh-suite
+# # Compile HHsuite from source.
+# RUN git clone --branch v3.3.0 https://github.com/soedinglab/hh-suite.git /tmp/hh-suite \
+#     && mkdir /tmp/hh-suite/build \
+#     && pushd /tmp/hh-suite/build \
+#     && cmake -DCMAKE_INSTALL_PREFIX=/opt/hhsuite .. \
+#     && make -j 4 && make install \
+#     && ln -s /opt/hhsuite/bin/* /usr/bin \
+#     && popd \
+#     && rm -rf /tmp/hh-suite
 
 # Install Miniconda package manager.
 RUN wget -q -P /tmp \
@@ -55,7 +57,8 @@ RUN wget -q -P /tmp \
 ENV PATH="/opt/conda/bin:$PATH"
 ENV LD_LIBRARY_PATH="/opt/conda/lib:$LD_LIBRARY_PATH"
 RUN conda install -qy conda==23.5.2 \
-    && conda install -y -c conda-forge \
+    && conda install -ky -c conda-forge -c bioconda \
+      hhsuite \
       openmm=7.7.0 \
       cudatoolkit==${CUDA_VERSION} \
       pdbfixer \
@@ -69,6 +72,7 @@ RUN wget -q -P /app/alphafold/alphafold/common/ \
 
 # Install pip packages.
 RUN pip3 install --upgrade pip --no-cache-dir \
+    && pip3 config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple \
     && pip3 install -r /app/alphafold/requirements.txt --no-cache-dir \
     && pip3 install --upgrade --no-cache-dir \
       jax==0.3.25 \
