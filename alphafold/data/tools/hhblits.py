@@ -36,16 +36,16 @@ class HHBlits:
                binary_path: str,
                databases: Sequence[str],
                n_cpu: int = int(os.environ.get('HHBLITS_CPU_NUM', 4)),
-               n_iter: int = 3,
-               e_value: float = 0.001,
+               n_iter: int = int(os.environ.get('HHBLITS_N_ITER', 3)),
+               e_value: float(float(os.environ.get('HHBLITS_EVALUE', 0.001))),
                maxseq: int = 1_000_000,
-               realign_max: int = 100_000,
-               maxfilt: int = 100_000,
-               min_prefilter_hits: int = 1000,
+               realign_max: int = int(os.environ.get('HHBLITS_REALIGN_MAX', 100_000)),
+               maxfilt: int = int(os.environ.get('HHBLITS_MAXFILT', 100_000)),
+               min_prefilter_hits: int = int(os.environ.get('HHBLITS_MIN_PREFILTER_HITS', 1000)),
                all_seqs: bool = False,
                alt: Optional[int] = None,
-               p: int = _HHBLITS_DEFAULT_P,
-               z: int = _HHBLITS_DEFAULT_Z):
+               p: int = int(os.environ.get('HHBLITS_MIN_P', _HHBLITS_DEFAULT_P)),
+               z: int = int(os.environ.get('HHBLITS_MAX_Z', _HHBLITS_DEFAULT_Z))):
     """Initializes the Python HHblits wrapper.
 
     Args:
