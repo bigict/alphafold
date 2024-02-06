@@ -70,6 +70,9 @@ flags.DEFINE_enum(
     ['monomer', 'monomer_casp14', 'monomer_ptm', 'multimer'],
     'Choose preset model configuration - the monomer model, the monomer model '
     'with extra ensembling, monomer model with pTM head, or multimer model')
+flags.DEFINE_list(
+    'model_preset_names', None, 'model names used to predict protein structures,'
+    ' separated by commas.')
 flags.DEFINE_integer('num_multimer_predictions_per_model', 5, 'How many '
                      'predictions (each with a different random seed) will be '
                      'generated per model. E.g. if this is 2 and there are 5 '
@@ -228,6 +231,8 @@ def main(argv):
       f'--use_gpu_relax={use_gpu_relax}',
       '--logtostderr',
   ])
+  if FLAGS.model_preset_names:
+    command_args.append(f'--model_preset_names={",".join(FLAGS.model_preset_names)}')
 
   client = docker.from_env()
   device_requests = [

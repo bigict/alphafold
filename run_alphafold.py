@@ -108,6 +108,9 @@ flags.DEFINE_enum('model_preset', 'monomer',
                   'Choose preset model configuration - the monomer model, '
                   'the monomer model with extra ensembling, monomer model with '
                   'pTM head, or multimer model')
+flags.DEFINE_list(
+    'model_preset_names', None, 'model names used to predict protein structures'
+    'separated by commas.')
 flags.DEFINE_boolean('benchmark', False, 'Run multiple JAX model evaluations '
                      'to obtain a timing that excludes the compilation time, '
                      'which should be more indicative of the time required for '
@@ -509,6 +512,8 @@ def main(argv):
 
   model_runners = {}
   model_names = config.MODEL_PRESETS[FLAGS.model_preset]
+  if FLAGS.model_preset_names:
+    model_names = [model_name for model_name in FLAGS.model_preset_names]
   for model_name in model_names:
     model_config = config.model_config(model_name)
     if run_multimer_system:
