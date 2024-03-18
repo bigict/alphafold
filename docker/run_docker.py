@@ -73,6 +73,11 @@ flags.DEFINE_enum(
 flags.DEFINE_list(
     'model_preset_names', None, 'model names used to predict protein structures,'
     ' separated by commas.')
+flags.DEFINE_integer('num_predictions_per_model', 1, 'How many '
+                     'predictions (each with a different random seed) will be '
+                     'generated per model. E.g. if this is 2 and there are 5 '
+                     'models then there will be 10 predictions per input. '
+                     'Note: this FLAG only applies if model_preset!=multimer')
 flags.DEFINE_integer('num_multimer_predictions_per_model', 5, 'How many '
                      'predictions (each with a different random seed) will be '
                      'generated per model. E.g. if this is 2 and there are 5 '
@@ -226,6 +231,7 @@ def main(argv):
       f'--model_preset={FLAGS.model_preset}',
       f'--benchmark={FLAGS.benchmark}',
       f'--use_precomputed_msas={FLAGS.use_precomputed_msas}',
+      f'--num_predictions_per_model={FLAGS.num_predictions_per_model}',
       f'--num_multimer_predictions_per_model={FLAGS.num_multimer_predictions_per_model}',
       f'--models_to_relax={FLAGS.models_to_relax}',
       f'--use_gpu_relax={use_gpu_relax}',
