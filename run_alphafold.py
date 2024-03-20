@@ -120,6 +120,10 @@ flags.DEFINE_integer('random_seed', None, 'The random seed for the data '
                      'that even if this is set, Alphafold may still not be '
                      'deterministic, because processes like GPU inference are '
                      'nondeterministic.')
+flags.DEFINE_integer('num_ensemble', None, 'The number of ensembles to run. '
+                     'default=8 for monomer_casp14 1 otherwise')
+flags.DEFINE_integer('num_recycle', None, 'The number of recycle to run. '
+                     'default=3.')
 flags.DEFINE_integer('num_predictions_per_model', 1, 'How many '
                      'predictions (each with a different random seed) will be '
                      'generated per model. E.g. if this is 2 and there are 5 '
@@ -461,6 +465,8 @@ def main(argv):
     num_ensemble = 8
   else:
     num_ensemble = 1
+  if FLAGS.num_ensemble is not None:
+    num_ensemble = FLAGS.num_ensemble
 
   # Check for duplicate FASTA file names.
   fasta_names = [pathlib.Path(p).stem for p in FLAGS.fasta_paths]
@@ -525,6 +531,8 @@ def main(argv):
       model_config.model.num_ensemble_eval = num_ensemble
     else:
       model_config.data.eval.num_ensemble = num_ensemble
+    if FLAGS.num_recycle is not None:
+      model_config.model.num_recycle = FLAGS.num_recycle
     model_params = data.get_model_haiku_params(
         model_name=model_name, data_dir=FLAGS.data_dir)
     model_runner = model.RunModel(model_config, model_params)

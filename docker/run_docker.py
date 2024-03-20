@@ -83,6 +83,10 @@ flags.DEFINE_integer('num_multimer_predictions_per_model', 5, 'How many '
                      'generated per model. E.g. if this is 2 and there are 5 '
                      'models then there will be 10 predictions per input. '
                      'Note: this FLAG only applies if model_preset=multimer')
+flags.DEFINE_integer('num_ensemble', None, 'The number of ensembles to run. '
+                     'default=8 for monomer_casp14 1 otherwise')
+flags.DEFINE_integer('num_recycle', None, 'The number of recycle to run. '
+                     'default=3.')
 flags.DEFINE_boolean(
     'benchmark', False,
     'Run multiple JAX model evaluations to obtain a timing that excludes the '
@@ -237,6 +241,10 @@ def main(argv):
       f'--use_gpu_relax={use_gpu_relax}',
       '--logtostderr',
   ])
+  if FLAGS.num_ensemble is not None:
+    command_args.append(f'--num_ensemble={FLAGS.num_ensemble}')
+  if FLAGS.num_recycle is not None:
+    command_args.append(f'--num_recycle={FLAGS.num_recycle}')
   if FLAGS.model_preset_names:
     command_args.append(f'--model_preset_names={",".join(FLAGS.model_preset_names)}')
 
