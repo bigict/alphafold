@@ -99,6 +99,13 @@ flags.DEFINE_boolean(
     'must stay the same between multiple runs that are to reuse the MSAs. '
     'WARNING: This will not check if the sequence, database or configuration '
     'have changed.')
+flags.DEFINE_boolean('use_precomputed_pkl', False, 'Whether to read feats that '
+                     'have been written to disk instead of running the MSA '
+                     'tools. The MSA files are looked up in the output '
+                     'directory, so it must stay the same between multiple '
+                     'runs that are to reuse the MSAs. WARNING: This will not '
+                     'check if the sequence, database or configuration have '
+                     'changed.')
 flags.DEFINE_string(
     'docker_user', f'{os.geteuid()}:{os.getegid()}',
     'UID:GID with which to run the Docker container. The output directories '
@@ -235,6 +242,7 @@ def main(argv):
       f'--model_preset={FLAGS.model_preset}',
       f'--benchmark={FLAGS.benchmark}',
       f'--use_precomputed_msas={FLAGS.use_precomputed_msas}',
+      f'--use_precomputed_pkl={FLAGS.use_precomputed_pkl}',
       f'--num_predictions_per_model={FLAGS.num_predictions_per_model}',
       f'--num_multimer_predictions_per_model={FLAGS.num_multimer_predictions_per_model}',
       f'--models_to_relax={FLAGS.models_to_relax}',
