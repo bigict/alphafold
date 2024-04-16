@@ -93,6 +93,11 @@ flags.DEFINE_boolean(
     'compilation time, which should be more indicative of the time required '
     'for inferencing many proteins.')
 flags.DEFINE_boolean(
+    'multi_gpus', False,
+    'Run multiple JAX model evaluations to obtain a timing that excludes the '
+    'compilation time, which should be more indicative of the time required '
+    'for inferencing many proteins.')
+flags.DEFINE_boolean(
     'use_precomputed_msas', False,
     'Whether to read MSAs that have been written to disk instead of running '
     'the MSA tools. The MSA files are looked up in the output directory, so it '
@@ -241,6 +246,7 @@ def main(argv):
       f'--db_preset={FLAGS.db_preset}',
       f'--model_preset={FLAGS.model_preset}',
       f'--benchmark={FLAGS.benchmark}',
+      f'--multi_gpus={FLAGS.multi_gpus}',
       f'--use_precomputed_msas={FLAGS.use_precomputed_msas}',
       f'--use_precomputed_pkl={FLAGS.use_precomputed_pkl}',
       f'--num_predictions_per_model={FLAGS.num_predictions_per_model}',
