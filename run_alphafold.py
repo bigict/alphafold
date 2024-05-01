@@ -443,7 +443,7 @@ def predict_structure_mp(
 
   # Relax predictions.
   if models_to_relax == ModelsToRelax.BEST:
-    to_relax = [ranked_order[0]]
+    to_relax = ranked_order[:int(os.environ.get('MODEL_TO_RELAX_TOPK', 1))]
   elif models_to_relax == ModelsToRelax.ALL:
     to_relax = ranked_order
   elif models_to_relax == ModelsToRelax.NONE:
@@ -644,7 +644,7 @@ def predict_structure(
 
   # Relax predictions.
   if models_to_relax == ModelsToRelax.BEST:
-    to_relax = [ranked_order[0]]
+    to_relax = ranked_order[:int(os.environ.get('MODEL_TO_RELAX_TOPK', 1))]
   elif models_to_relax == ModelsToRelax.ALL:
     to_relax = ranked_order
   elif models_to_relax == ModelsToRelax.NONE:
