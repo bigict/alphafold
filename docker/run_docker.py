@@ -280,6 +280,7 @@ def main(argv):
           # The following flags allow us to make predictions on proteins that
           # would typically be too long to fit into GPU memory.
           'MODEL_TO_RELAX_TOPK': os.environ.get('MODEL_TO_RELAX_TOPK', '1'),
+          'AlphaFold_return_representations': os.environ.get('AlphaFold_return_representations', '0'),
           'TF_FORCE_UNIFIED_MEMORY': '1',
           'XLA_PYTHON_CLIENT_MEM_FRACTION': '4.0',
       })

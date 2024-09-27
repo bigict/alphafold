@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Code for constructing the model."""
+import os
 from typing import Any, Mapping, Optional, Union
 
 from absl import logging
@@ -71,17 +72,21 @@ class RunModel:
     self.params = params
     self.multimer_mode = config.model.global_config.multimer_mode
 
+    return_representations = int(os.environ.get('AlphaFold_return_representations', 0))
+
     if self.multimer_mode:
       def _forward_fn(batch):
         model = modules_multimer.AlphaFold(self.config.model)
         return model(
             batch,
+            return_representations=return_representations,
             is_training=False)
     else:
       def _forward_fn(batch):
         model = modules.AlphaFold(self.config.model)
         return model(
             batch,
+            return_representations=return_representations,
             is_training=False,
             compute_loss=False,
             ensemble_representations=True)
