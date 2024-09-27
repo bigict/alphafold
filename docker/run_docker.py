@@ -70,13 +70,30 @@ flags.DEFINE_enum(
     ['monomer', 'monomer_casp14', 'monomer_ptm', 'multimer'],
     'Choose preset model configuration - the monomer model, the monomer model '
     'with extra ensembling, monomer model with pTM head, or multimer model')
+flags.DEFINE_list(
+    'model_preset_names', None, 'model names used to predict protein structures,'
+    ' separated by commas.')
+flags.DEFINE_integer('num_predictions_per_model', 1, 'How many '
+                     'predictions (each with a different random seed) will be '
+                     'generated per model. E.g. if this is 2 and there are 5 '
+                     'models then there will be 10 predictions per input. '
+                     'Note: this FLAG only applies if model_preset!=multimer')
 flags.DEFINE_integer('num_multimer_predictions_per_model', 5, 'How many '
                      'predictions (each with a different random seed) will be '
                      'generated per model. E.g. if this is 2 and there are 5 '
                      'models then there will be 10 predictions per input. '
                      'Note: this FLAG only applies if model_preset=multimer')
+flags.DEFINE_integer('num_ensemble', None, 'The number of ensembles to run. '
+                     'default=8 for monomer_casp14 1 otherwise')
+flags.DEFINE_integer('num_recycle', None, 'The number of recycle to run. '
+                     'default=3.')
 flags.DEFINE_boolean(
     'benchmark', False,
+    'Run multiple JAX model evaluations to obtain a timing that excludes the '
+    'compilation time, which should be more indicative of the time required '
+    'for inferencing many proteins.')
+flags.DEFINE_boolean(
+    'multi_gpus', False,
     'Run multiple JAX model evaluations to obtain a timing that excludes the '
     'compilation time, which should be more indicative of the time required '
     'for inferencing many proteins.')
@@ -87,6 +104,13 @@ flags.DEFINE_boolean(
     'must stay the same between multiple runs that are to reuse the MSAs. '
     'WARNING: This will not check if the sequence, database or configuration '
     'have changed.')
+flags.DEFINE_boolean('use_precomputed_pkl', False, 'Whether to read feats that '
+                     'have been written to disk instead of running the MSA '
+                     'tools. The MSA files are looked up in the output '
+                     'directory, so it must stay the same between multiple '
+                     'runs that are to reuse the MSAs. WARNING: This will not '
+                     'check if the sequence, database or configuration have '
+                     'changed.')
 flags.DEFINE_string(
     'docker_user', f'{os.geteuid()}:{os.getegid()}',
     'UID:GID with which to run the Docker container. The output directories '
@@ -222,12 +246,21 @@ def main(argv):
       f'--db_preset={FLAGS.db_preset}',
       f'--model_preset={FLAGS.model_preset}',
       f'--benchmark={FLAGS.benchmark}',
+      f'--multi_gpus={FLAGS.multi_gpus}',
       f'--use_precomputed_msas={FLAGS.use_precomputed_msas}',
+      f'--use_precomputed_pkl={FLAGS.use_precomputed_pkl}',
+      f'--num_predictions_per_model={FLAGS.num_predictions_per_model}',
       f'--num_multimer_predictions_per_model={FLAGS.num_multimer_predictions_per_model}',
       f'--models_to_relax={FLAGS.models_to_relax}',
       f'--use_gpu_relax={use_gpu_relax}',
       '--logtostderr',
   ])
+  if FLAGS.num_ensemble is not None:
+    command_args.append(f'--num_ensemble={FLAGS.num_ensemble}')
+  if FLAGS.num_recycle is not None:
+    command_args.append(f'--num_recycle={FLAGS.num_recycle}')
+  if FLAGS.model_preset_names:
+    command_args.append(f'--model_preset_names={",".join(FLAGS.model_preset_names)}')
 
   client = docker.from_env()
   device_requests = [
@@ -246,6 +279,7 @@ def main(argv):
           'NVIDIA_VISIBLE_DEVICES': FLAGS.gpu_devices,
           # The following flags allow us to make predictions on proteins that
           # would typically be too long to fit into GPU memory.
+          'MODEL_TO_RELAX_TOPK': os.environ.get('MODEL_TO_RELAX_TOPK', '1'),
           'TF_FORCE_UNIFIED_MEMORY': '1',
           'XLA_PYTHON_CLIENT_MEM_FRACTION': '4.0',
       })

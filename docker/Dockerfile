@@ -21,6 +21,8 @@ ARG CUDA
 # Use bash to support string substitution.
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+RUN apt-key del 7fa2af80
+RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
         build-essential \
@@ -35,15 +37,15 @@ RUN apt-get update \
     && apt-get autoremove -y \
     && apt-get clean
 
-# Compile HHsuite from source.
-RUN git clone --branch v3.3.0 https://github.com/soedinglab/hh-suite.git /tmp/hh-suite \
-    && mkdir /tmp/hh-suite/build \
-    && pushd /tmp/hh-suite/build \
-    && cmake -DCMAKE_INSTALL_PREFIX=/opt/hhsuite .. \
-    && make -j 4 && make install \
-    && ln -s /opt/hhsuite/bin/* /usr/bin \
-    && popd \
-    && rm -rf /tmp/hh-suite
+# # Compile HHsuite from source.
+# RUN git clone --branch v3.3.0 https://github.com/soedinglab/hh-suite.git /tmp/hh-suite \
+#     && mkdir /tmp/hh-suite/build \
+#     && pushd /tmp/hh-suite/build \
+#     && cmake -DCMAKE_INSTALL_PREFIX=/opt/hhsuite .. \
+#     && make -j 4 && make install \
+#     && ln -s /opt/hhsuite/bin/* /usr/bin \
+#     && popd \
+#     && rm -rf /tmp/hh-suite
 
 # Install Miniconda package manager.
 RUN wget -q -P /tmp \
@@ -58,13 +60,16 @@ RUN conda install -qy conda==24.1.2 pip python=3.11 \
     && conda install -y -c nvidia cuda=${CUDA_VERSION} \
     && conda install -y -c conda-forge openmm=8.0.0 pdbfixer \
     && conda clean --all --force-pkgs-dirs --yes
-
+RUN conda install -ky -c conda-forge -c bioconda \
+      hhsuite
+      
 COPY . /app/alphafold
 RUN wget -q -P /app/alphafold/alphafold/common/ \
   https://git.scicore.unibas.ch/schwede/openstructure/-/raw/7102c63615b64735c4941278d92b554ec94415f8/modules/mol/alg/src/stereo_chemical_props.txt
 
 # Install pip packages.
 RUN pip3 install --upgrade pip --no-cache-dir \
+    && pip3 config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple \
     && pip3 install -r /app/alphafold/requirements.txt --no-cache-dir \
     && pip3 install --upgrade --no-cache-dir \
       jax==0.4.26 \
